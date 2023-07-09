@@ -6,7 +6,8 @@
 
 @font-face {
     font-family: "Cascadia Code";
-    src: url("/CascadiaCode.woff2");
+    src: local("Cascadia Code"), url("/CascadiaCode.woff2");
+    font-display: swap;
 }
 
 *:focus-visible {
