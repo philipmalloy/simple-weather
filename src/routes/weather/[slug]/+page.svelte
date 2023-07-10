@@ -1,6 +1,10 @@
 <script lang="ts">
     import LocationSearchBox from "$lib/LocationSearchBox.svelte";
+    import TemperatureUnitSelector from "$lib/TemperatureUnitSelector.svelte";
+    import UNIT_TEMPERATURE from "$lib/stores/unitTemperature";
     import type { PageData } from "./$types";
+
+    
 
     export let data: PageData;
     export const DEG = "°";
@@ -16,25 +20,32 @@
         // had to add T00:00 or JS will make it off by one day :/
         return new Date(`${date}T00:00`).toLocaleString(undefined, {
             weekday: "short",
-            day: "numeric"
+            day: "numeric",
         });
     }
+    export function clientTemperature(object: any, key: string, unit: string) {
+        return object[`${key}_${unit.toLowerCase()}`];
+    }
+
+    $: unitTemperature = $UNIT_TEMPERATURE;
 </script>
 
 <h2>
     Simple Weather <LocationSearchBox />
+    <TemperatureUnitSelector />
 </h2>
 
 <h2>{data.location.name} <span id="date">{data.last_updated}</span></h2>
 <p>
-    It is currently {Math.round(data.current.temp_f)}{DEG}F and {data.current
-        .condition.text}. Feels like {Math.round(
-        data.current.feelslike_f
+    It is currently {Math.round(
+        unitTemperature === "F" ? data.current.temp_f : data.current.temp_c
+    )}{DEG}{unitTemperature} and {data.current.condition.text}. Feels like {Math.round(
+        clientTemperature(data.current, "feelslike", unitTemperature)
     )}{DEG}.
 </p>
 <p>
-    High of {Math.round(data.forecast.forecastday[0].day.maxtemp_f)}{DEG} and Low
-    of {Math.round(data.forecast.forecastday[0].day.mintemp_f)}{DEG}.
+    High of {Math.round(clientTemperature(data.forecast.forecastday[0].day, "maxtemp", unitTemperature))}{DEG} and Low
+    of {Math.round(clientTemperature(data.forecast.forecastday[0].day, "mintemp", unitTemperature))}{DEG}.
 </p>
 <p>
     Air quality is {AQI}. UV index is {data.current.uv}.
@@ -61,8 +72,8 @@
             {#each data.forecast.forecastday as day}
                 <tr>
                     <td>{toShortDate(day.date)}</td>
-                    <td>{Math.round(day.day.maxtemp_f)}{DEG}</td>
-                    <td>{Math.round(day.day.mintemp_f)}{DEG}</td>
+                    <td>{Math.round(clientTemperature(day.day, "maxtemp", unitTemperature))}{DEG}</td>
+                    <td>{Math.round(clientTemperature(day.day, "mintemp", unitTemperature))}{DEG}</td>
                     <td>{day.day.condition.text}</td>
                     <td>{day.day.daily_chance_of_rain}%</td>
                     <td>{day.day.uv}</td>
